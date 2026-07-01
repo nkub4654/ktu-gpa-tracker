@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KTU GPA Tracker — EEE 2019</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0f13;
+  --bg2: #13151b;
+  --bg3: #1a1d26;
+  --bg4: #21253100;
+  --surface: #1e2230;
+  --surface2: #252a3a;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #eef0f6;
+  --text2: #9198b0;
+  --text3: #5c6278;
+  --accent: #6ee7b7;
+  --accent2: #34d399;
+  --accent-dim: rgba(110,231,183,0.1);
+  --accent-dim2: rgba(110,231,183,0.18);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.12);
+  --amber: #fbbf24;
+  --amber-dim: rgba(251,191,36,0.12);
+  --blue: #60a5fa;
+  --blue-dim: rgba(96,165,250,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 18px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  --font-display: 'DM Serif Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
+
+/* ── Layout ── */
+.shell { display: flex; min-height: 100vh; }
+
+/* ── Backdrop for mobile ── */
+.backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 90;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(2px);
+}
+.backdrop.open {
+  opacity: 1;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  overflow-y: auto;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-logo {
+  padding: 28px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-logo .wordmark {
+  font-family: var(--font-display);
+  font-size: 20px;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.sidebar-logo .sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sidebar-logo .accent-dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+.nav-section {
+  padding: 16px 12px 8px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 600;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  font-size: 13px;
+  color: var(--text2);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  margin: 1px 8px;
+  transition: all 0.15s;
+  border: none;
+  background: none;
+  width: calc(100% - 16px);
+  text-align: left;
+}
+
+.nav-item:hover { background: var(--surface); color: var(--text); }
+
+.nav-item.active {
+  background: var(--accent-dim2);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.nav-item .nav-icon {
+  font-size: 15px;
+  width: 18px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.nav-item .nav-sgpa {
+  margin-left: auto;
+  font-size: 11px;
+  font-weight: 500;
+  opacity: 0.8;
+}
+
+.sidebar-footer {
+  margin-top: auto;
+  padding: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.cgpa-pill {
+  background: var(--accent-dim2);
+  border: 1px solid rgba(110,231,183,0.25);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  text-align: center;
+}
+
+.cgpa-pill .cgpa-label {
+  font-size: 11px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.cgpa-pill .cgpa-val {
+  font-family: var(--font-display);
+  font-size: 32px;
+  color: var(--accent);
+  line-height: 1.1;
+  margin: 2px 0;
+}
+
+.cgpa-pill .cgpa-pct {
+  font-size: 12px;
+  color: var(--text2);
+}
+
+/* ── Main ── */
+.main {
+  margin-left: 220px;
+  flex: 1;
+  min-height: 100vh;
+  width: calc(100% - 220px);
+}
+
+/* ── Top bar ── */
+.topbar {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  gap: 16px;
+}
+
+.topbar-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+}
+.menu-toggle:hover { color: var(--accent); }
+
+.topbar-title { font-size: 16px; font-weight: 500; color: var(--text); }
+.topbar-sub { font-size: 12px; color: var(--text3); margin-top: 2px; }
+
+.topbar-actions { display: flex; gap: 8px; align-items: center; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border2);
+  background: var(--surface);
+  color: var(--text2);
+  transition: all 0.15s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn:hover { background: var(--surface2); color: var(--text); border-color: var(--border2); }
+
+.btn-accent {
+  background: var(--accent-dim2);
+  border-color: rgba(110,231,183,0.3);
+  color: var(--accent);
+}
+
+.btn-accent:hover {
+  background: rgba(110,231,183,0.25);
+  color: var(--accent);
+}
+
+/* ── Content area ── */
+.content { padding: 32px; }
+
+/* ── Overview page ── */
+.overview-hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover { border-color: var(--border2); }
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--accent);
+  opacity: 0.4;
+}
+
+.stat-card.blue::before { background: var(--blue); }
+.stat-card.amber::before { background: var(--amber); }
+.stat-card.red::before { background: var(--red); }
+
+.stat-label {
+  font-size: 11px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-family: var(--font-display);
+  font-size: 36px;
+  line-height: 1;
+  color: var(--text);
+}
+
+.stat-card .stat-value.accent { color: var(--accent); }
+.stat-card .stat-value.blue { color: var(--blue); }
+.stat-card.amber .stat-value { color: var(--amber); }
+
+.stat-meta {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 6px;
+}
+
+/* ── SGPA chart bars ── */
+.chart-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.chart-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.chart-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  color: var(--text3);
+}
+
+.chart-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bars-wrap {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 12px;
+  align-items: end;
+  height: 140px;
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.bar-val {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text2);
+  min-height: 16px;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.6s cubic-bezier(.23,1,.32,1);
+  min-height: 3px;
+  cursor: pointer;
+  position: relative;
+}
+
+.bar:hover { opacity: 0.85; }
+
+.bar-label {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 500;
+}
+
+/* ── Progress overview ── */
+.progress-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.1s;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 -12px;
+}
+
+.progress-row:last-child { border-bottom: none; }
+.progress-row:hover { background: var(--surface2); }
+
+.pr-sem {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text3);
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.pr-bar-wrap {
+  flex: 1;
+  height: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.pr-bar {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.6s cubic-bezier(.23,1,.32,1);
+}
+
+.pr-sgpa {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  width: 44px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pr-count {
+  font-size: 11px;
+  color: var(--text3);
+  width: 52px;
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.pr-arrow {
+  color: var(--text3);
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+/* ── Semester page ── */
+.sem-page { display: none; }
+.sem-page.visible { display: block; }
+
+.sem-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 20px;
+}
+
+.sem-title-block .sem-num {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.sem-title-block h2 {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--text);
+  font-weight: 400;
+}
+
+.sem-stats {
+  display: flex;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.sem-stat {
+  text-align: right;
+}
+
+.sem-stat .val {
+  font-family: var(--font-display);
+  font-size: 28px;
+  color: var(--text);
+  line-height: 1;
+}
+
+.sem-stat .lbl {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 3px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Table ── */
+.table-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 550px;
+}
+
+thead tr {
+  background: var(--bg3);
+  border-bottom: 1px solid var(--border2);
+}
+
+thead th {
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text3);
+  text-align: left;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+thead th.right { text-align: right; }
+thead th.center { text-align: center; }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+
+tbody td {
+  padding: 13px 16px;
+  font-size: 13px;
+  color: var(--text);
+  vertical-align: middle;
+}
+
+tbody td.muted { color: var(--text3); font-family: 'DM Mono', monospace; font-size: 11px; }
+tbody td.right { text-align: right; }
+tbody td.center { text-align: center; }
+
+.course-name { font-weight: 400; min-width: 180px; }
+.credit-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.06);
+  color: var(--text2);
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.zero-credit { opacity: 0.45; }
+
+/* ── Grade select ── */
+.grade-sel {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s, background 0.15s;
+  min-width: 70px;
+}
+
+.grade-sel:focus { border-color: var(--accent); background: var(--surface); }
+
+/* ── Grade pills ── */
+.gp-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.gp-s    { background: rgba(52,211,153,0.15); color: #34d399; }
+.gp-aplus{ background: rgba(96,165,250,0.15); color: #60a5fa; }
+.gp-a    { background: rgba(96,165,250,0.12); color: #7db9fc; }
+.gp-bplus{ background: rgba(167,139,250,0.15); color: #a78bfa; }
+.gp-b    { background: rgba(167,139,250,0.12); color: #b09cfc; }
+.gp-cplus{ background: rgba(251,191,36,0.15); color: #fbbf24; }
+.gp-c    { background: rgba(251,191,36,0.12); color: #fcd34d; }
+.gp-d    { background: rgba(249,115,22,0.15); color: #fb923c; }
+.gp-p    { background: rgba(249,115,22,0.12); color: #fdba74; }
+.gp-f    { background: rgba(248,113,113,0.15); color: #f87171; }
+.gp-none { background: rgba(255,255,255,0.04); color: var(--text3); }
+
+/* ── Table footer ── */
+.table-footer {
+  background: var(--bg3);
+  border-top: 1px solid var(--border2);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  left: 0;
+}
+
+.tf-stats { font-size: 12px; color: var(--text3); }
+.tf-sgpa {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tf-sgpa span {
+  font-family: var(--font-display);
+  font-size: 22px;
+  color: var(--accent);
+  margin-left: 6px;
+}
+
+/* ── Sem info bar ── */
+.sem-infobar {
+  margin-top: 16px;
+  background: var(--accent-dim);
+  border: 1px solid rgba(110,231,183,0.2);
+  border-radius: var(--radius);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--text2);
+}
+
+.sem-infobar .perf {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.sem-infobar.hidden { display: none; }
+
+/* ── Info formula card ── */
+.formula-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px 24px;
+  margin-top: 28px;
+  display: flex;
+  gap: 32px;
+  flex-wrap: wrap;
+}
+
+.formula-item { flex: 1; min-width: 180px; }
+
+.formula-item .f-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text3);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.formula-item .f-expr {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 500;
+  margin-bottom: 4px;
+  font-family: 'Courier New', monospace;
+}
+
+.formula-item .f-note { font-size: 12px; color: var(--text3); }
+
+/* ── Page transitions ── */
+.page { display: none; animation: fadeIn 0.2s ease; }
+.page.visible { display: block; }
+
+@keyframes fadeIn { from { opacity:0; transform: translateY(6px); } to { opacity:1; transform: translateY(0); } }
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  font-size: 13px;
+  z-index: 999;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+
+/* ── Responsive Mobile Design ── */
+@media (max-width: 900px) {
+  .sidebar { width: 200px; }
+  .main { margin-left: 200px; width: calc(100% - 200px); }
+  .overview-hero { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 680px) {
+  .backdrop { display: block; pointer-events: none; }
+  .backdrop.open { pointer-events: auto; }
+  
+  .sidebar { 
+    transform: translateX(-100%); 
+    box-shadow: var(--shadow); 
+  }
+  .sidebar.open { transform: translateX(0); }
+  
+  .main { margin-left: 0; width: 100%; }
+  .content { padding: 16px; }
+  
+  .topbar { 
+    padding: 12px 16px; 
+    flex-direction: column; 
+    align-items: flex-start;
+  }
+  .menu-toggle { display: block; }
+  
+  .topbar-actions { 
+    width: 100%; 
+    justify-content: flex-start; 
+    overflow-x: auto; 
+    padding-bottom: 4px; 
+    padding-top: 4px;
+  }
+  
+  .overview-hero { grid-template-columns: 1fr; }
+  
+  .sem-hero { flex-direction: column; gap: 16px; }
+  .sem-stats { width: 100%; justify-content: space-between; }
+  .sem-stat { text-align: left; }
+  
+  .formula-card { flex-direction: column; gap: 20px; }
+  .bars-wrap { overflow-x: auto; padding-bottom: 8px; }
+  .bar-col { min-width: 30px; }
+}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="backdrop" id="backdrop" onclick="toggleSidebar(false)"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark"><span class="accent-dot"></span>GPA Tracker</div>
+      <div class="sub">KTU · EEE · 2019 Scheme</div>
+    </div>
+
+    <div class="nav-section">Navigation</div>
+    <button class="nav-item active" onclick="navigate('overview')" id="nav-overview">
+      <span class="nav-icon">⊞</span> Overview
+    </button>
+
+    <div class="nav-section">Semesters</div>
+    <div id="sem-nav"></div>
+
+    <div class="sidebar-footer">
+      <div class="cgpa-pill">
+        <div class="cgpa-label">CGPA</div>
+        <div class="cgpa-val" id="sidebar-cgpa">—</div>
+        <div class="cgpa-pct" id="sidebar-pct">Enter grades to calculate</div>
+      </div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-header">
+        <button class="menu-toggle" onclick="toggleSidebar()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <div class="topbar-title" id="topbar-title">Overview</div>
+          <div class="topbar-sub">APJ Abdul Kalam Technological University</div>
+        </div>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn" onclick="exportData()" title="Export data as JSON">⬇ Export</button>
+        <label class="btn" style="cursor:pointer" title="Import previously exported JSON">
+          ⬆ Import <input type="file" accept=".json" style="display:none" onchange="importData(event)">
+        </label>
+        <button class="btn btn-accent" onclick="clearAll()">↺ Reset</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="page visible" id="page-overview">
+
+        <div class="overview-hero" id="overview-stats"></div>
+
+        <div class="chart-section">
+          <div class="chart-header">
+            <div class="chart-title">SGPA across semesters</div>
+            <div class="chart-legend">
+              <span><span class="legend-dot" style="background:var(--accent)"></span> ≥ 8.5 Excellent</span>
+              <span><span class="legend-dot" style="background:var(--blue)"></span> ≥ 7 Good</span>
+              <span><span class="legend-dot" style="background:var(--amber)"></span> ≥ 6 Pass</span>
+              <span><span class="legend-dot" style="background:var(--red)"></span> &lt; 6</span>
+            </div>
+          </div>
+          <div class="bars-wrap" id="sgpa-bars"></div>
+        </div>
+
+        <div class="chart-section">
+          <div class="chart-header">
+            <div class="chart-title">Semester progress</div>
+            <div style="font-size:12px;color:var(--text3)">Click any row to jump to semester</div>
+          </div>
+          <div id="progress-list"></div>
+        </div>
+
+        <div class="formula-card">
+          <div class="formula-item">
+            <div class="f-label">SGPA formula</div>
+            <div class="f-expr">SGPA = Σ(GP × Credits) / Σ Credits</div>
+            <div class="f-note">Calculated per semester. Zero-credit courses excluded.</div>
+          </div>
+          <div class="formula-item">
+            <div class="f-label">CGPA formula</div>
+            <div class="f-expr">CGPA = Σ(all earned GP) / Σ(all credits)</div>
+            <div class="f-note">Weighted average across all entered semesters.</div>
+          </div>
+          <div class="formula-item">
+            <div class="f-label">Percentage conversion</div>
+            <div class="f-expr">Percentage = CGPA × 10</div>
+            <div class="f-note">Standard KTU 2024 and 2019 Scheme formula.</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="sem-pages"></div>
+
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEMESTERS = [
+  { sem:1, courses:[
+    {code:'MAT101', name:'Linear Algebra and Calculus', credits:4},
+    {code:'CYT100', name:'Engineering Chemistry', credits:4},
+    {code:'EST100', name:'Engineering Mechanics', credits:3},
+    {code:'EST120', name:'Basics of Civil & Mechanical Engineering', credits:4},
+    {code:'HUN101', name:'Life Skills', credits:0},
+    {code:'PHL120', name:'Engineering Physics Lab', credits:1},
+    {code:'ESL120', name:'Civil & Mechanical Workshop', credits:1},
+  ]},
+  { sem:2, courses:[
+    {code:'MAT102', name:'Vector Calculus, Differential Equations & Transforms', credits:4},
+    {code:'PHT100', name:'Engineering Physics A', credits:4},
+    {code:'EST110', name:'Engineering Graphics', credits:3},
+    {code:'EST130', name:'Basics of Electrical & Electronics Engineering', credits:4},
+    {code:'HUN102', name:'Professional Communication', credits:0},
+    {code:'EST102', name:'Programming in C', credits:4},
+    {code:'CYL120', name:'Engineering Chemistry Lab', credits:1},
+    {code:'ESL130', name:'Electrical & Electronics Workshop', credits:1},
+  ]},
+  { sem:3, courses:[
+    {code:'MAT201', name:'Partial Differential Equations & Complex Analysis', credits:4},
+    {code:'EET201', name:'Circuits and Networks', credits:4},
+    {code:'EET203', name:'Measurements and Instrumentation', credits:4},
+    {code:'EET205', name:'Analog Electronics', credits:4},
+    {code:'HUT200', name:'Professional Ethics', credits:2},
+    {code:'MCN201', name:'Sustainable Engineering', credits:0},
+    {code:'EEL201', name:'Circuits & Measurements Lab', credits:2},
+    {code:'EEL203', name:'Analog Electronics Lab', credits:2},
+  ]},
+  { sem:4, courses:[
+    {code:'MAT204', name:'Probability, Random Process & Numerical Methods', credits:4},
+    {code:'EET202', name:'DC Machines and Transformers', credits:4},
+    {code:'EET204', name:'Electromagnetic Theory', credits:4},
+    {code:'EET206', name:'Digital Electronics', credits:4},
+    {code:'EST200', name:'Design and Engineering', credits:2},
+    {code:'MCN202', name:'Constitution of India', credits:0},
+    {code:'EEL202', name:'Electrical Machines Lab I', credits:2},
+    {code:'EEL204', name:'Digital Electronics Lab', credits:2},
+  ]},
+  { sem:5, courses:[
+    {code:'EET301', name:'Power Systems I', credits:4},
+    {code:'EET303', name:'Microprocessors & Microcontrollers', credits:4},
+    {code:'EET305', name:'Signals and Systems', credits:4},
+    {code:'EET307', name:'Synchronous and Induction Machines', credits:4},
+    {code:'HUT300', name:'Industrial Economics & Foreign Trade', credits:3},
+    {code:'MCN301', name:'Disaster Management', credits:0},
+    {code:'EEL331', name:'Microprocessors & Microcontrollers Lab', credits:2},
+    {code:'EEL333', name:'Electrical Machines Lab II', credits:2},
+  ]},
+  { sem:6, courses:[
+    {code:'EET302', name:'Linear Control Systems', credits:4},
+    {code:'EET304', name:'Power Systems II', credits:4},
+    {code:'EET306', name:'Power Electronics', credits:4},
+    {code:'EET322', name:'Renewable Energy Systems', credits:3},
+    {code:'HUT310', name:'Management for Engineers', credits:3},
+    {code:'EET308', name:'Comprehensive Course Work', credits:1},
+    {code:'EEL332', name:'Power Systems Lab', credits:2},
+    {code:'EEL334', name:'Power Electronics Lab', credits:2},
+  ]},
+  { sem:7, courses:[
+    {code:'EET401', name:'Advanced Control Systems', credits:3},
+    {code:'EETPE2', name:'Program Elective II', credits:3},
+    {code:'EETOE1', name:'Open Elective', credits:3},
+    {code:'MCN401', name:'Industrial Safety Engineering', credits:3},
+    {code:'EEL411', name:'Control Systems Lab', credits:2},
+    {code:'EEQ413', name:'Seminar', credits:2},
+    {code:'EED415', name:'Project Phase I', credits:2},
+  ]},
+  { sem:8, courses:[
+    {code:'EET402', name:'Electrical System Design & Estimation', credits:3},
+    {code:'EETPE3', name:'Program Elective III', credits:3},
+    {code:'EETPE4', name:'Program Elective IV', credits:3},
+    {code:'EETPE5', name:'Program Elective V', credits:3},
+    {code:'EET404', name:'Comprehensive Viva', credits:1},
+    {code:'EED416', name:'Project Phase II', credits:4},
+  ]},
+];
+
+const GRADE_MAP = {
+  '—': null, 'S': 10, 'A+': 9, 'A': 8.5,
+  'B+': 8, 'B': 7.5, 'C+': 7,
+  'C': 6.5, 'D': 6, 'P': 5.5, 'F': 0
+};
+const GRADE_LIST = ['—','S','A+','A','B+','B','C+','C','D','P','F'];
+
+const GP_CLASS = {
+  'S':'gp-s','A+':'gp-aplus','A':'gp-a',
+  'B+':'gp-bplus','B':'gp-b','C+':'gp-cplus',
+  'C':'gp-c','D':'gp-d','P':'gp-p','F':'gp-f','—':'gp-none'
+};
+
+function loadState(){
+  try { return JSON.parse(localStorage.getItem('ktu_eee_2019') || '{}'); } catch(e){ return {}; }
+}
+
+function saveState(s){
+  try { localStorage.setItem('ktu_eee_2019', JSON.stringify(s)); } catch(e){}
+}
+
+let state = loadState();
+
+function getGrade(sem, code){ return state[`${sem}_${code}`] || '—'; }
+
+function setGrade(sem, code, g){
+  state[`${sem}_${code}`] = g;
+  saveState(state);
+  updateAll();
+  showToast('Grade saved');
+}
+
+function calcSGPA(semIdx){
+  const s = SEMESTERS[semIdx];
+  let gp = 0, cr = 0;
+  for(const c of s.courses){
+    if(c.credits === 0) continue;
+    const g = getGrade(s.sem, c.code);
+    if(GRADE_MAP[g] !== null && GRADE_MAP[g] !== undefined){
+      gp += GRADE_MAP[g] * c.credits;
+      cr += c.credits;
+    }
+  }
+  return cr > 0 ? gp/cr : null;
+}
+
+function calcCGPA(){
+  let gp = 0, cr = 0;
+  for(let i=0;i<SEMESTERS.length;i++){
+    for(const c of SEMESTERS[i].courses){
+      if(c.credits === 0) continue;
+      const g = getGrade(SEMESTERS[i].sem, c.code);
+      if(GRADE_MAP[g] !== null && GRADE_MAP[g] !== undefined){
+        gp += GRADE_MAP[g] * c.credits;
+        cr += c.credits;
+      }
+    }
+  }
+  return cr > 0 ? gp/cr : null;
+}
+
+function countFilled(semIdx){
+  const s = SEMESTERS[semIdx];
+  let filled=0, total=0;
+  for(const c of s.courses){
+    if(c.credits === 0) continue;
+    total++;
+    if(getGrade(s.sem, c.code) !== '—') filled++;
+  }
+  return {filled, total};
+}
+
+function semColor(sgpa){
+  if(!sgpa) return 'var(--text3)';
+  if(sgpa >= 8.5) return 'var(--accent)';
+  if(sgpa >= 7) return 'var(--blue)';
+  if(sgpa >= 6) return 'var(--amber)';
+  return 'var(--red)';
+}
+
+function perfLabel(sgpa){
+  if(!sgpa) return '';
+  if(sgpa >= 9) return 'Outstanding';
+  if(sgpa >= 8.5) return 'Excellent';
+  if(sgpa >= 8) return 'Very Good';
+  if(sgpa >= 7.5) return 'Good';
+  if(sgpa >= 7) return 'Above Average';
+  if(sgpa >= 6.5) return 'Average';
+  if(sgpa >= 6) return 'Pass';
+  return 'Needs improvement';
+}
+
+let currentPage = 'overview';
+
+function navigate(page){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('visible'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+  const target = document.getElementById('page-' + page);
+  if(target) target.classList.add('visible');
+
+  const nav = document.getElementById('nav-' + page);
+  if(nav) nav.classList.add('active');
+
+  currentPage = page;
+
+  const titles = {overview:'Overview'};
+  SEMESTERS.forEach(s => titles['s'+s.sem] = 'Semester '+s.sem);
+  document.getElementById('topbar-title').textContent = titles[page] || page;
+
+  window.scrollTo(0,0);
+  
+  // Close sidebar on mobile after navigation
+  if(window.innerWidth <= 680) {
+    toggleSidebar(false);
+  }
+}
+
+function toggleSidebar(force){
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('backdrop');
+  const isOpen = sb.classList.contains('open');
+  const action = typeof force === 'boolean' ? force : !isOpen;
+
+  if(action) {
+    sb.classList.add('open');
+    bd.classList.add('open');
+  } else {
+    sb.classList.remove('open');
+    bd.classList.remove('open');
+  }
+}
+
+function buildSemNav(){
+  const wrap = document.getElementById('sem-nav');
+  wrap.innerHTML = SEMESTERS.map(s => {
+    const sgpa = calcSGPA(SEMESTERS.indexOf(s));
+    const val = sgpa ? sgpa.toFixed(2) : '';
+    return `<button class="nav-item" onclick="navigate('s${s.sem}')" id="nav-s${s.sem}">
+      <span class="nav-icon" style="font-size:11px;font-weight:600;color:var(--text3)">S${s.sem}</span>
+      Semester ${s.sem}
+      ${val ? `<span class="nav-sgpa" style="color:${semColor(sgpa)}">${val}</span>` : ''}
+    </button>`;
+  }).join('');
+}
+
+function buildSemPages(){
+  const wrap = document.getElementById('sem-pages');
+  wrap.innerHTML = SEMESTERS.map((s,i) => {
+    const rows = s.courses.map(c => {
+      const g = getGrade(s.sem, c.code);
+      const gp = GRADE_MAP[g];
+      const earned = (gp !== null && c.credits > 0) ? (gp * c.credits).toFixed(1) : '—';
+      const opts = GRADE_LIST.map(gr => `<option value="${gr}"${gr===g?' selected':''}>${gr}</option>`).join('');
+      const zeroCls = c.credits === 0 ? ' zero-credit' : '';
+      return `<tr class="${zeroCls}" id="row-${s.sem}-${c.code}">
+        <td class="muted">${c.code}</td>
+        <td class="course-name">${c.name}${c.credits===0?' <span style="font-size:10px;color:var(--text3);background:rgba(255,255,255,0.05);padding:1px 6px;border-radius:10px;margin-left:4px">no credit</span>':''}</td>
+        <td class="center"><span class="credit-badge">${c.credits===0?'—':c.credits}</span></td>
+        <td class="center">
+          <select class="grade-sel" onchange="setGrade(${s.sem},'${c.code}',this.value)">${opts}</select>
+        </td>
+        <td class="center">
+          <span class="gp-pill ${GP_CLASS[g]||'gp-none'}" id="pill-${s.sem}-${c.code}">${gp !== null ? gp : '—'}</span>
+        </td>
+        <td class="right" style="font-weight:500" id="earned-${s.sem}-${c.code}">${earned}</td>
+      </tr>`;
+    }).join('');
+
+    const sgpa = calcSGPA(i);
+    const {filled, total} = countFilled(i);
+    let totalGP=0, totalCr=0;
+    s.courses.forEach(c => {
+      if(c.credits===0) return;
+      const g = getGrade(s.sem, c.code);
+      const gp = GRADE_MAP[g];
+      if(gp !== null){ totalGP += gp*c.credits; totalCr += c.credits; }
+    });
+
+    return `<div class="page" id="page-s${s.sem}">
+      <div class="sem-hero">
+        <div class="sem-title-block">
+          <div class="sem-num">Semester ${s.sem} of 8</div>
+          <h2>Semester ${s.sem}</h2>
+        </div>
+        <div class="sem-stats" id="sem-stats-${s.sem}">
+          <div class="sem-stat">
+            <div class="val" id="sem-sgpa-${s.sem}" style="color:${sgpa ? semColor(sgpa) : 'var(--text3)'}">${sgpa ? sgpa.toFixed(2) : '—'}</div>
+            <div class="lbl">SGPA</div>
+          </div>
+          <div class="sem-stat">
+            <div class="val" id="sem-pct-${s.sem}">${sgpa ? (sgpa*10).toFixed(1)+'%' : '—'}</div>
+            <div class="lbl">Percentage</div>
+          </div>
+          <div class="sem-stat">
+            <div class="val" id="sem-filled-${s.sem}">${filled}/${total}</div>
+            <div class="lbl">Graded</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:100px">Code</th>
+            <th>Course</th>
+            <th class="center" style="width:80px">Credits</th>
+            <th class="center" style="width:100px">Grade</th>
+            <th class="center" style="width:90px">Grade pt.</th>
+            <th class="right" style="width:90px">Earned GP</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="table-footer" id="tf-${s.sem}">
+          <span class="tf-stats">Credits: ${totalCr} &nbsp;·&nbsp; Earned GP: ${totalGP.toFixed(1)}</span>
+          <span class="tf-sgpa">SGPA <span>${sgpa ? sgpa.toFixed(2) : '—'}</span></span>
+        </div>
+      </div>
+
+      <div class="sem-infobar${!sgpa?' hidden':''}" id="infobar-${s.sem}">
+        <span>${s.sem === i+1 ? `Semester ${s.sem} complete · Percentage: ${sgpa ? (sgpa*10).toFixed(1)+'%' : ''}` : ''}</span>
+        <span class="perf">${perfLabel(sgpa)}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateSemPage(semIdx){
+  const s = SEMESTERS[semIdx];
+  const sgpa = calcSGPA(semIdx);
+  const {filled, total} = countFilled(semIdx);
+  let totalGP=0, totalCr=0;
+
+  s.courses.forEach(c => {
+    const g = getGrade(s.sem, c.code);
+    const gp = GRADE_MAP[g];
+
+    const pill = document.getElementById(`pill-${s.sem}-${c.code}`);
+    const earned = document.getElementById(`earned-${s.sem}-${c.code}`);
+
+    if(pill){
+      pill.className = 'gp-pill ' + (GP_CLASS[g]||'gp-none');
+      pill.textContent = gp !== null ? gp : '—';
+    }
+    if(earned){
+      earned.textContent = (gp !== null && c.credits > 0) ? (gp*c.credits).toFixed(1) : '—';
+    }
+
+    if(c.credits > 0 && gp !== null){ totalGP += gp*c.credits; totalCr += c.credits; }
+  });
+
+  const sgpaEl = document.getElementById(`sem-sgpa-${s.sem}`);
+  const pctEl = document.getElementById(`sem-pct-${s.sem}`);
+  const filledEl = document.getElementById(`sem-filled-${s.sem}`);
+  const tf = document.getElementById(`tf-${s.sem}`);
+  const ib = document.getElementById(`infobar-${s.sem}`);
+
+  if(sgpaEl){ sgpaEl.textContent = sgpa ? sgpa.toFixed(2) : '—'; sgpaEl.style.color = sgpa ? semColor(sgpa) : 'var(--text3)'; }
+  if(pctEl) pctEl.textContent = sgpa ? (sgpa*10).toFixed(1)+'%' : '—';
+  if(filledEl) filledEl.textContent = `${filled}/${total}`;
+  if(tf) tf.innerHTML = `<span class="tf-stats">Credits: ${totalCr} &nbsp;·&nbsp; Earned GP: ${totalGP.toFixed(1)}</span><span class="tf-sgpa">SGPA <span>${sgpa ? sgpa.toFixed(2) : '—'}</span></span>`;
+  if(ib){
+    if(sgpa){ ib.classList.remove('hidden'); ib.innerHTML = `<span>Semester ${s.sem} · Percentage: ${(sgpa*10).toFixed(1)}%</span><span class="perf">${perfLabel(sgpa)}</span>`; }
+    else ib.classList.add('hidden');
+  }
+}
+
+function updateOverview(){
+  const cgpa = calcCGPA();
+  let completedSems=0, totalFilled=0, totalCourses=0;
+  for(let i=0;i<SEMESTERS.length;i++){
+    const {filled,total}=countFilled(i);
+    if(filled===total && total>0) completedSems++;
+    totalFilled+=filled; totalCourses+=total;
+  }
+
+  // Stat cards
+  const stats = document.getElementById('overview-stats');
+  if(stats){
+    stats.innerHTML = `
+      <div class="stat-card">
+        <div class="stat-label">CGPA</div>
+        <div class="stat-value accent">${cgpa ? cgpa.toFixed(2) : '—'}</div>
+        <div class="stat-meta">${cgpa ? perfLabel(cgpa) : 'Enter grades to calculate'}</div>
+      </div>
+      <div class="stat-card blue">
+        <div class="stat-label">Percentage</div>
+        <div class="stat-value blue">${cgpa ? (cgpa*10).toFixed(1)+'%' : '—'}</div>
+        <div class="stat-meta">CGPA × 10</div>
+      </div>
+      <div class="stat-card amber">
+        <div class="stat-label">Semesters done</div>
+        <div class="stat-value">${completedSems} <span style="font-size:18px;color:var(--text3)">/8</span></div>
+        <div class="stat-meta">${8-completedSems} remaining</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Grades entered</div>
+        <div class="stat-value">${totalFilled} <span style="font-size:18px;color:var(--text3)">/${totalCourses}</span></div>
+        <div class="stat-meta">${totalCourses-totalFilled} remaining</div>
+      </div>`;
+  }
+
+  // Bar chart
+  const barsWrap = document.getElementById('sgpa-bars');
+  if(barsWrap){
+    barsWrap.innerHTML = SEMESTERS.map((s,i) => {
+      const sgpa = calcSGPA(i);
+      const ht = sgpa ? Math.max(4, (sgpa/10)*120) : 4;
+      const col = sgpa ? semColor(sgpa) : 'rgba(255,255,255,0.06)';
+      const val = sgpa ? sgpa.toFixed(2) : '';
+      return `<div class="bar-col">
+        <div class="bar-val">${val}</div>
+        <div class="bar" style="height:${ht}px;background:${col}" onclick="navigate('s${s.sem}')" title="S${s.sem}: ${val||'no data'}"></div>
+        <div class="bar-label">S${i+1}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Progress list
+  const pl = document.getElementById('progress-list');
+  if(pl){
+    pl.innerHTML = SEMESTERS.map((s,i) => {
+      const sgpa = calcSGPA(i);
+      const {filled,total} = countFilled(i);
+      const pct = sgpa ? (sgpa/10*100) : 0;
+      const col = semColor(sgpa);
+      return `<div class="progress-row" onclick="navigate('s${s.sem}')">
+        <div class="pr-sem">S${i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;color:var(--text2);margin-bottom:5px">Semester ${s.sem}</div>
+          <div class="pr-bar-wrap"><div class="pr-bar" style="width:${pct}%;background:${col}"></div></div>
+        </div>
+        <div class="pr-sgpa" style="color:${sgpa?col:'var(--text3)'}">${sgpa ? sgpa.toFixed(2) : '—'}</div>
+        <div class="pr-count">${filled}/${total}</div>
+        <div class="pr-arrow">›</div>
+      </div>`;
+    }).join('');
+  }
+
+  // Sidebar
+  const sc = document.getElementById('sidebar-cgpa');
+  const sp = document.getElementById('sidebar-pct');
+  if(sc) sc.textContent = cgpa ? cgpa.toFixed(2) : '—';
+  if(sp) sp.textContent = cgpa ? (cgpa*10).toFixed(1)+'% · '+perfLabel(cgpa) : 'Enter grades to calculate';
+}
+
+function updateAll(){
+  updateOverview();
+  buildSemNav();
+  for(let i=0;i<SEMESTERS.length;i++) updateSemPage(i);
+}
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(()=>t.classList.remove('show'), 2000);
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ktu_gpa_grades.json';
+  a.click();
+  showToast('Data exported!');
+}
+
+function importData(e){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const imported = JSON.parse(ev.target.result);
+      state = imported;
+      saveState(state);
+      // Rebuild selects
+      buildSemPages();
+      updateAll();
+      showToast('Data imported!');
+    } catch(err) {
+      showToast('Error: invalid JSON file');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+function clearAll(){
+  if(!confirm('Reset all grades? This cannot be undone.')) return;
+  state = {};
+  saveState(state);
+  buildSemPages();
+  updateAll();
+  showToast('All grades cleared');
+}
+
+// ── Init ──
+buildSemPages();
+buildSemNav();
+updateOverview();
+</script>
+</body>
+</html>
